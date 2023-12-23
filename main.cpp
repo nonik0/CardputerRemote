@@ -15,14 +15,22 @@
 M5Canvas canvas(&M5Cardputer.Display);
 
 Key *activeRemote;
-uint activeRemoteKeyCount;
+uint activeRemoteKeyCount;;
 std::function<void(int, int)> activeRemoteIrSend;
 // TODO: active button map/state for different layouts
 
-enum RemoteType { Sony, Lg, Undef1, Undef2, End };
+enum RemoteType
+{
+  Sony,
+  Lg,
+  Undef1,
+  Undef2,
+  End
+};
 RemoteType remoteType = Sony;
 
-int batteryPct = -1;
+int batteryPct = M5Cardputer.Power.getBatteryLevel();
+int batteryDelay = 0;
 
 // RBG565 colors
 const unsigned short COLOR_BLACK = 0x18E3;
@@ -38,16 +46,16 @@ const unsigned short COLOR_PURPLE = 0x7075;
 // define a bunch of display variables to make adjustments not a nightmare
 // originally defined the square and made everything else relative
 // may need to change in future for different layout support
-int w = 250;  // width
-int h = 135;  // height
-int xm = 4;   // x margin
-int ym = 4;   // y margin
-int sm = 4;   // square margin, used for background graphics
-int bw = 28;  // button width
-int bm = 2;   // button margin
+int w = 250; // width
+int h = 135; // height
+int xm = 4;  // x margin
+int ym = 4;  // y margin
+int sm = 4;  // square margin, used for background graphics
+int bw = 28; // button width
+int bm = 2;  // button margin
 
 // background square (directional pad)
-int sw = sm + bw + bm + bw + bm + bw + sm;  // square width
+int sw = sm + bw + bm + bw + bm + bw + sm; // square width
 int sx = 240 - xm - sm - bw - sm - sw;
 int sy = 135 - ym - sw;
 
@@ -80,7 +88,8 @@ int sby = ym;
 int sbw = rx - xm - sm;
 int sbh = h - ym - ym;
 
-struct Button {
+struct Button
+{
   char key;
   int x;
   int y;
@@ -92,33 +101,36 @@ struct Button {
 };
 
 Button buttons[] = {
-    {'`', c1, r1, bw, bw, "", COLOR_PURPLE, false},            // power
-    {KEY_TAB, c1, r2, bw, bw, "", COLOR_PURPLE, false},        // mute
-    {KEY_LEFT_CTRL, c1, r3, bw, bw, "", COLOR_PURPLE, false},  // settings
-    {'s', c2, r1, bw, bw, "", COLOR_PURPLE, false},            // volup
-    {'m', c2, r2, bw, bw, "", COLOR_PURPLE, false},            // mute
-    {'z', c2, r3, bw, bw, "", COLOR_PURPLE, false},            // voldn
-    {',', c3, r2, bw, bw, "", COLOR_BLUE, false},              // left
-    {';', c4, r1, bw, bw, "", COLOR_BLUE, false},              // up
-    {KEY_ENTER, c4, r2, bw, bw, "", COLOR_BLUE, false},        // OK
-    {'.', c4, r3, bw, bw, "", COLOR_BLUE, false},              // down
-    {'/', c5, r2, bw, bw, "", COLOR_BLUE, false},              // right
-    {KEY_BACKSPACE, c6, r1, 27, 27, "", COLOR_BLUEGRAY, false},    // back
-    {'\\', c6, r2, 27, 27, "", COLOR_BLUEGRAY, false},             // ?
-    {' ', c6, r3, 27, 27, "", COLOR_BLUEGRAY, false},              // home
+    {'`', c1, r1, bw, bw, "", COLOR_PURPLE, false},             // power
+    {KEY_TAB, c1, r2, bw, bw, "", COLOR_PURPLE, false},         // mute
+    {KEY_LEFT_CTRL, c1, r3, bw, bw, "", COLOR_PURPLE, false},   // settings
+    {'s', c2, r1, bw, bw, "", COLOR_PURPLE, false},             // volup
+    {'m', c2, r2, bw, bw, "", COLOR_PURPLE, false},             // mute
+    {'z', c2, r3, bw, bw, "", COLOR_PURPLE, false},             // voldn
+    {',', c3, r2, bw, bw, "", COLOR_BLUE, false},               // left
+    {';', c4, r1, bw, bw, "", COLOR_BLUE, false},               // up
+    {KEY_ENTER, c4, r2, bw, bw, "", COLOR_BLUE, false},         // OK
+    {'.', c4, r3, bw, bw, "", COLOR_BLUE, false},               // down
+    {'/', c5, r2, bw, bw, "", COLOR_BLUE, false},               // right
+    {KEY_BACKSPACE, c6, r1, 27, 27, "", COLOR_BLUEGRAY, false}, // back
+    {'\\', c6, r2, 27, 27, "", COLOR_BLUEGRAY, false},          // ?
+    {' ', c6, r3, 27, 27, "", COLOR_BLUEGRAY, false},           // home
 };
 uint8_t buttonCount = sizeof(buttons) / sizeof(Button);
 
 SPIClass SPI2;
-void checkForMenuBoot() {
+void checkForMenuBoot()
+{
   M5Cardputer.update();
 
-  if (M5Cardputer.Keyboard.isKeyPressed('a')) {
+  if (M5Cardputer.Keyboard.isKeyPressed('a'))
+  {
     SPI2.begin(M5.getPin(m5::pin_name_t::sd_spi_sclk),
                M5.getPin(m5::pin_name_t::sd_spi_miso),
                M5.getPin(m5::pin_name_t::sd_spi_mosi),
                M5.getPin(m5::pin_name_t::sd_spi_ss));
-    while (!SD.begin(M5.getPin(m5::pin_name_t::sd_spi_ss), SPI2)) {
+    while (!SD.begin(M5.getPin(m5::pin_name_t::sd_spi_ss), SPI2))
+    {
       delay(500);
     }
 
@@ -127,7 +139,32 @@ void checkForMenuBoot() {
   }
 }
 
-void draw() {
+void setRemoteType(RemoteType type)
+{
+  switch (remoteType)
+  {
+  case Sony:
+    activeRemote = SonyKeyMap;
+    activeRemoteKeyCount = SonyKeyMapSize;
+    activeRemoteIrSend = [](int address, int command)
+    {
+      IrSender.sendSony(address, command, 1, 12);
+    };
+    break;
+  // TODO: NEC codes slow to emit??
+  case Lg:
+    activeRemote = LgKeyMap;
+    activeRemoteKeyCount = LgKeyMapSize;
+    activeRemoteIrSend = [](int address, int command)
+    {
+      IrSender.sendNEC(address, command, 32);
+    };
+    break;
+  }
+}
+
+void draw()
+{
   canvas.fillSprite(BLACK);
 
   // draw background graphics
@@ -203,7 +240,8 @@ void draw() {
   // determine battery color and charge width from charge level
   int chgw = (battw - 2) * batteryPct / 100;
   uint16_t batColor = COLOR_TEAL;
-  if (batteryPct < 100) {
+  if (batteryPct < 100)
+  {
     int r = ((100 - batteryPct) / 100.0) * 256;
     int g = (batteryPct / 100.0) * 256;
     batColor = canvas.color565(r, g, 0);
@@ -211,15 +249,16 @@ void draw() {
   canvas.fillRoundRect(x, y, battw, batth, 2, TFT_SILVER);
   canvas.fillRect(x - 2, hy + (hh / 2) - 2, 2, 4, TFT_SILVER);
   canvas.fillRect(x + 1, y + 1, battw - 2 - chgw, batth - 2,
-                  COLOR_DARKGRAY);  // 1px margin from outer battery
+                  COLOR_DARKGRAY); // 1px margin from outer battery
   canvas.fillRect(x + 1 + battw - 2 - chgw, y + 1, chgw, batth - 2,
-                  batColor);  // 1px margin from outer battery
+                  batColor); // 1px margin from outer battery
 
   // TODO: different button layouts for different remotes
   // TODO: would need to redefine layout vars above (not based on square size)
 
   // draw all buttons for remote
-  for (auto button : buttons) {
+  for (auto button : buttons)
+  {
     unsigned short color = button.pressed ? TFT_ORANGE : button.color;
     canvas.fillRoundRect(button.x, button.y, button.w, button.h, 3, color);
     // canvas.setTextColor(TFT_SILVER, color);
@@ -318,55 +357,51 @@ void draw() {
   canvas.pushSprite(0, 0);
 }
 
-void setup() {
+void setup()
+{
   auto cfg = M5.config();
   M5Cardputer.begin(cfg, true);
-  M5Cardputer.Display.setRotation(1);
-  M5Cardputer.Display.setBrightness(90);
-  canvas.createSprite(240, 135);
 
   checkForMenuBoot();
 
-  IrSender.begin(DISABLE_LED_FEEDBACK);  // Start with IR_SEND_PIN as send pin
+  M5Cardputer.Display.setRotation(1);
+  M5Cardputer.Display.setBrightness(100);
+  canvas.createSprite(240, 135);
+
+  IrSender.begin(DISABLE_LED_FEEDBACK); // Start with IR_SEND_PIN as send pin
   IrSender.setSendPin(IR_TX_PIN);
 
+  setRemoteType(Sony);
   draw();
 }
 
-void loop() {
+void loop()
+{
   M5Cardputer.update();
-  if (M5Cardputer.Keyboard.isChange()) {
-    if (M5Cardputer.Keyboard.isKeyPressed(KEY_FN)) {
+  if (M5Cardputer.Keyboard.isChange())
+  {
+    if (M5Cardputer.Keyboard.isKeyPressed(KEY_FN))
+    {
       remoteType = (RemoteType)(remoteType + 1);
-      if (remoteType == Undef1) remoteType = Sony;
+      if (remoteType == Undef1)
+        remoteType = Sony;
 
-      switch (remoteType) {
-        case Sony:
-          activeRemote = SonyKeyMap;
-          activeRemoteKeyCount = SonyKeyMapSize;
-          activeRemoteIrSend = [](int address, int command) {
-            IrSender.sendSony(address, command, 1, 12);
-          };
-          break;
-        case Lg:
-          activeRemote = LgKeyMap;
-          activeRemoteKeyCount = LgKeyMapSize;
-          activeRemoteIrSend = [](int address, int command) {
-            IrSender.sendNEC(address, command, 32);
-          };
-          break;
-      }
+      setRemoteType(remoteType);
     }
 
-    for (int i = 0; i < activeRemoteKeyCount; i++) {
+    for (int i = 0; i < activeRemoteKeyCount; i++)
+    {
       Key key = activeRemote[i];
 
-      if (M5Cardputer.Keyboard.isKeyPressed(key.key)) {
+      if (M5Cardputer.Keyboard.isKeyPressed(key.key))
+      {
         activeRemoteIrSend(key.address, key.command);
 
         // set button to pressed for drawing
-        for (int i = 0; i < buttonCount; i++) {
-          if (key.key == buttons[i].key) {
+        for (int i = 0; i < buttonCount; i++)
+        {
+          if (key.key == buttons[i].key)
+          {
             buttons[i].pressed = true;
           }
         }
@@ -380,10 +415,10 @@ void loop() {
     draw();
   }
 
-  // TODO: debounce battery check
-  int newBatteryPct = M5.Power.getBatteryLevel();
-  if (batteryPct != newBatteryPct) {
-    batteryPct = newBatteryPct;
+  if (millis() > batteryDelay)
+  {
+    batteryDelay = millis() + 60000;
+    batteryPct = M5Cardputer.Power.getBatteryLevel();
     draw();
   }
 }
