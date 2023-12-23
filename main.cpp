@@ -22,15 +22,18 @@ std::function<void(int, int)> activeRemoteIrSend;
 enum RemoteType { Sony, Lg, Undef1, Undef2, End };
 RemoteType remoteType = Sony;
 
+int batteryPct = -1;
+
 // RBG565 colors
-const unsigned short COLOR_BLUE = 0x026E;
-const unsigned short COLOR_TEAL = 0x0B0C;
-const unsigned short COLOR_PURPLE = 0x7075;
-const unsigned short COLOR_DARKRED = 0x5800;
 const unsigned short COLOR_BLACK = 0x18E3;
 const unsigned short COLOR_DARKGRAY = 0x0861;
 const unsigned short COLOR_MEDGRAY = 0x2104;
-const unsigned short COLOR_ORANGE = 0xc401;
+const unsigned short COLOR_DARKRED = 0x5800;
+const unsigned short COLOR_ORANGE = 0xC401;
+const unsigned short COLOR_TEAL = 0x07CC;
+const unsigned short COLOR_BLUEGRAY = 0x0B0C;
+const unsigned short COLOR_BLUE = 0x026E;
+const unsigned short COLOR_PURPLE = 0x7075;
 
 // define a bunch of display variables to make adjustments not a nightmare
 // originally defined the square and made everything else relative
@@ -100,9 +103,9 @@ Button buttons[] = {
     {KEY_ENTER, c4, r2, bw, bw, "", COLOR_BLUE, false},        // OK
     {'.', c4, r3, bw, bw, "", COLOR_BLUE, false},              // down
     {'/', c5, r2, bw, bw, "", COLOR_BLUE, false},              // right
-    {KEY_BACKSPACE, c6, r1, 27, 27, "", COLOR_TEAL, false},    // back
-    {'\\', c6, r2, 27, 27, "", COLOR_TEAL, false},             // ?
-    {' ', c6, r3, 27, 27, "", COLOR_TEAL, false},              // home
+    {KEY_BACKSPACE, c6, r1, 27, 27, "", COLOR_BLUEGRAY, false},    // back
+    {'\\', c6, r2, 27, 27, "", COLOR_BLUEGRAY, false},             // ?
+    {' ', c6, r3, 27, 27, "", COLOR_BLUEGRAY, false},              // home
 };
 uint8_t buttonCount = sizeof(buttons) / sizeof(Button);
 
@@ -198,12 +201,11 @@ void draw() {
   x = c6 + 2;
   y = hy + (hh - batth) / 2;
   // determine battery color and charge width from charge level
-  int batPct = M5.Power.getBatteryLevel();
-  int chgw = (battw - 2) * batPct / 100;
-  uint16_t batColor = TFT_BLUE;
-  if (batPct < 100) {
-    int r = ((100 - batPct) / 100.0) * 256;
-    int g = (batPct / 100.0) * 256;
+  int chgw = (battw - 2) * batteryPct / 100;
+  uint16_t batColor = COLOR_TEAL;
+  if (batteryPct < 100) {
+    int r = ((100 - batteryPct) / 100.0) * 256;
+    int g = (batteryPct / 100.0) * 256;
     batColor = canvas.color565(r, g, 0);
   }
   canvas.fillRoundRect(x, y, battw, batth, 2, TFT_SILVER);
@@ -377,5 +379,11 @@ void loop() {
       buttons[i].pressed = false;
     draw();
   }
-  // TODO: check battery level and draw if changed
+
+  // TODO: debounce battery check
+  int newBatteryPct = M5.Power.getBatteryLevel();
+  if (batteryPct != newBatteryPct) {
+    batteryPct = newBatteryPct;
+    draw();
+  }
 }
