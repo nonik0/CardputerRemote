@@ -44,49 +44,46 @@ const unsigned short COLOR_BLUE = 0x026E;
 const unsigned short COLOR_PURPLE = 0x7075;
 
 // define a bunch of display variables to make adjustments not a nightmare
-// originally defined the square and made everything else relative
-// may need to change in future for different layout support
-int w = 250; // width
+int w = 240; // width
 int h = 135; // height
 int xm = 4;  // x margin
 int ym = 4;  // y margin
-int sm = 4;  // square margin, used for background graphics
+int rm = 4;  // rect margin, used for background graphics
 int bw = 28; // button width
 int bm = 2;  // button margin
 
-// background square (directional pad)
-int sw = sm + bw + bm + bw + bm + bw + sm; // square width
-int sx = 240 - xm - sm - bw - sm - sw;
-int sy = 135 - ym - sw;
-
-// define rows and columns relative to square
-int r1 = sy + sm;
-int r2 = r1 + bw + bm;
-int r3 = r2 + bw + bm;
-int c1 = sx - sm - bw - bm - bw;
-int c2 = c1 + bw + bm;
-int c3 = sx + sm;
-int c4 = c3 + bw + bm;
-int c5 = c4 + bw + bm;
-int c6 = sx + sw + sm;
-
-// background rectangle, relative to square size
-int rx = c1 - sm;
-int ry = sy;
-int rw = (c6 - c1) + bw + sm + sm;
-int rh = sw;
-
-// header rectangle, relative to rectangle
+// main background rectangle, for remote buttons
+int rw = 6 * rm + 6 * bw + 3 * bm;
+int rh = 2 * rm + 3 * bw + 2 * bm;
+int rx = w - xm - rw;
+int ry = h - ym - rh;
+// header rectangle
 int hx = rx;
 int hy = ym;
 int hw = rw;
-int hh = h - ym - rh - sm - ym;
+int hh = h - ym - rh - rm - ym;
+// sidebar rectangle
+int sx = xm;
+int sy = ym;
+int sw = rx - xm - rm;
+int sh = h - ym - ym;
 
-// sidebar rectangle, relative to rectangle
-int sbx = xm;
-int sby = ym;
-int sbw = rx - xm - sm;
-int sbh = h - ym - ym;
+// specific to button layout
+// TODO: refactor to be more dynamic
+int r1 = ry + rm;
+int r2 = r1 + bw + bm;
+int r3 = r2 + bw + bm;
+int c1 = rx + rm;
+int c2 = c1 + bw + bm;
+int c3 = c2 + bw + 2 * rm;
+int c4 = c3 + bw + bm;
+int c5 = c4 + bw + bm;
+int c6 = c5 + bw + 2 * rm;
+// directional square
+int dw = c6 - c3;
+int dx = c3 - rm;
+int dy = ry;
+
 
 struct Button
 {
@@ -112,9 +109,9 @@ Button buttons[] = {
     {KEY_ENTER, c4, r2, bw, bw, "", COLOR_BLUE, false},         // OK
     {'.', c4, r3, bw, bw, "", COLOR_BLUE, false},               // down
     {'/', c5, r2, bw, bw, "", COLOR_BLUE, false},               // right
-    {KEY_BACKSPACE, c6, r1, 27, 27, "", COLOR_BLUEGRAY, false}, // back
-    {'\\', c6, r2, 27, 27, "", COLOR_BLUEGRAY, false},          // ?
-    {' ', c6, r3, 27, 27, "", COLOR_BLUEGRAY, false},           // home
+    {KEY_BACKSPACE, c6, r1, bw, bw, "", COLOR_BLUEGRAY, false}, // back
+    {'\\', c6, r2, bw, bw, "", COLOR_BLUEGRAY, false},          // ?
+    {' ', c6, r3, bw, bw, "", COLOR_BLUEGRAY, false},           // home
 };
 uint8_t buttonCount = sizeof(buttons) / sizeof(Button);
 
@@ -167,17 +164,17 @@ void draw()
   canvas.fillSprite(BLACK);
 
   // draw background graphics
-  canvas.fillRoundRect(hx, hy, hw, hh, 6, COLOR_DARKGRAY);
-  canvas.fillRoundRect(sbx, sby, sbw, sbh, 6, COLOR_DARKGRAY);
-  canvas.fillRoundRect(rx, ry, rw, rh, 6, COLOR_DARKGRAY);
-  canvas.fillRoundRect(sx, sy, sw, sw, 8, COLOR_MEDGRAY);
+  canvas.fillRoundRect(hx, hy, hw, hh, 8, COLOR_DARKGRAY);
+  canvas.fillRoundRect(sx, sy, sw, sh, 8, COLOR_DARKGRAY);
+  canvas.fillRoundRect(rx, ry, rw, rh, 8, COLOR_DARKGRAY);
+  canvas.fillRoundRect(dx, dy, dw, dw, 10, COLOR_MEDGRAY);
 
   // reused vars for drawing symbols
   int x, y, w, h, bc, tc;
 
   // draw title text
-  x = sbx + (sbw / 2);
-  y = sby + 20;
+  x = sx + (sw / 2);
+  y = sy + 20;
   canvas.setTextColor(TFT_SILVER, COLOR_DARKGRAY);
   canvas.setTextDatum(middle_center);
   canvas.setTextSize(1.5);
@@ -200,7 +197,7 @@ void draw()
   // draw remote type indicators
   w = 36;
   h = 17;
-  x = hx + sm;
+  x = hx + rm;
   y = hy + (hh - h) / 2;
   bc = remoteType == Sony ? COLOR_ORANGE : COLOR_MEDGRAY;
   tc = remoteType == Sony ? TFT_BLACK : TFT_SILVER;
@@ -210,21 +207,21 @@ void draw()
   canvas.setTextColor(tc, bc);
   canvas.drawString("SONY", x + w / 2, y + h / 2);
 
-  x = x + w + sm;
+  x = x + w + rm;
   bc = remoteType == Lg ? COLOR_ORANGE : COLOR_MEDGRAY;
   tc = remoteType == Lg ? TFT_BLACK : TFT_SILVER;
   canvas.fillRoundRect(x, y, w, h, 3, bc);
   canvas.setTextColor(tc, bc);
   canvas.drawString("LG", x + w / 2, y + h / 2);
 
-  x = x + w + sm;
+  x = x + w + rm;
   bc = remoteType == Undef1 ? COLOR_ORANGE : COLOR_MEDGRAY;
   tc = remoteType == Undef1 ? TFT_BLACK : TFT_SILVER;
   canvas.fillRoundRect(x, y, w, h, 3, bc);
   canvas.setTextColor(tc, bc);
   canvas.drawString("TBD", x + w / 2, y + h / 2);
 
-  x = x + w + sm;
+  x = x + w + rm;
   bc = remoteType == Undef2 ? COLOR_ORANGE : COLOR_MEDGRAY;
   tc = remoteType == Undef2 ? TFT_BLACK : TFT_SILVER;
   canvas.fillRoundRect(x, y, w, h, 3, bc);
