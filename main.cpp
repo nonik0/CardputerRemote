@@ -151,13 +151,12 @@ void setRemoteType(RemoteType type)
       IrSender.sendSony(address, command, 1, 12);
     };
     break;
-  // TODO: NEC codes slow to emit??
   case Lg:
     activeRemote = LgKeyMap;
     activeRemoteKeyCount = LgKeyMapSize;
     activeRemoteIrSend = [](int address, int command)
     {
-      IrSender.sendNEC(address, command, 32);
+      IrSender.sendNEC(address, command, 1);
     };
     break;
   }
