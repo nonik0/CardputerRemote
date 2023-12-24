@@ -5,7 +5,7 @@
 #include <IRremote.hpp>
 #include <functional>
 
-#include "gear_bmp.h"
+#include "draw_helper.h"
 #include "remote_keymap.h"
 
 #define DISABLE_CODE_FOR_RECEIVER
@@ -15,7 +15,8 @@
 M5Canvas canvas(&M5Cardputer.Display);
 
 Key *activeRemote;
-uint activeRemoteKeyCount;;
+uint activeRemoteKeyCount;
+;
 std::function<void(int, int)> activeRemoteIrSend;
 // TODO: active button map/state for different layouts
 
@@ -31,17 +32,6 @@ RemoteType remoteType = Sony;
 
 int batteryPct = M5Cardputer.Power.getBatteryLevel();
 int batteryDelay = 0;
-
-// RBG565 colors
-const unsigned short COLOR_BLACK = 0x18E3;
-const unsigned short COLOR_DARKGRAY = 0x0861;
-const unsigned short COLOR_MEDGRAY = 0x2104;
-const unsigned short COLOR_DARKRED = 0x5800;
-const unsigned short COLOR_ORANGE = 0xC401;
-const unsigned short COLOR_TEAL = 0x07CC;
-const unsigned short COLOR_BLUEGRAY = 0x0B0C;
-const unsigned short COLOR_BLUE = 0x026E;
-const unsigned short COLOR_PURPLE = 0x7075;
 
 // define a bunch of display variables to make adjustments not a nightmare
 int w = 240; // width
@@ -83,7 +73,6 @@ int c6 = c5 + bw + 2 * rm;
 int dw = c6 - c3;
 int dx = c3 - rm;
 int dy = ry;
-
 
 struct Button
 {
@@ -250,7 +239,6 @@ void draw()
                   batColor); // 1px margin from outer battery
 
   // TODO: different button layouts for different remotes
-  // TODO: would need to redefine layout vars above (not based on square size)
 
   // draw all buttons for remote
   for (auto button : buttons)
@@ -262,93 +250,24 @@ void draw()
     // button.h / 2);
   }
 
-  // draw power symbol
-  x = c1 + bw / 2;
-  y = r1 + bw / 2;
-  canvas.fillArc(x, y, 9, 7, 0, 230, TFT_RED);
-  canvas.fillArc(x, y, 9, 7, 310, 359, TFT_RED);
-  canvas.fillRect(x - 1, y - 11, 3, 10, TFT_RED);
-
-  // draw input symbol
-  x = c1 + bw / 2;
-  y = r2 + bw / 2;
-  canvas.fillTriangle(x + 5, y, x - 3, y - 5, x - 3, y + 5, TFT_SILVER);
-  canvas.fillRect(x - 10, y - 2, 10, 4, TFT_SILVER);
   canvas.drawRoundRect(c1 + 4, r2 + 4, bw - 8, bw - 8, 3, TFT_SILVER);
   canvas.drawRoundRect(c1 + 3, r2 + 3, bw - 6, bw - 6, 3, TFT_SILVER);
-  // canvas.drawRoundRect(c1 + 2, r2 + 2, bw - 4, bw - 4, 3, TFT_SILVER);
-  // canvas.drawRoundRect(c1 + 1, r2 + 1, bw - 2, bw - 2, 3, TFT_SILVER);
 
-  // draw gear symbol
-  x = c1;
-  y = r3;
-  int o = (bw - gearWidth) / 2;
-  canvas.pushImage(x + o, y + o, gearWidth, gearHeight, (uint16_t *)gearData,
-                   gearTransparency);
-
-  // draw volup symbol
-  x = c2 + bw / 2;
-  y = r1 + bw / 2;
-  canvas.fillTriangle(x - 8, y, x, y + 8, x, y - 8, TFT_SILVER);
-  canvas.fillRect(x - 10, y - 3, 8, 6, TFT_SILVER);
-  canvas.fillRect(x + 3, y - 1, 8, 2, TFT_SILVER);
-  canvas.fillRect(x + 6, y - 4, 2, 8, TFT_SILVER);
-
-  // draw mute symbol
-  x = c2 + bw / 2;
-  y = r2 + bw / 2;
-  canvas.fillTriangle(x - 8, y, x, y + 8, x, y - 8, TFT_SILVER);
-  canvas.fillRect(x - 10, y - 3, 8, 6, TFT_SILVER);
-
-  // draw voldn symbol
-  x = c2 + bw / 2;
-  y = r3 + bw / 2;
-  canvas.fillTriangle(x - 8, y, x, y + 8, x, y - 8, TFT_SILVER);
-  canvas.fillRect(x - 10, y - 3, 8, 6, TFT_SILVER);
-  canvas.fillRect(x + 3, y - 1, 8, 2, TFT_SILVER);
-
-  // draw left symbol
-  x = c3 + bw / 2;
-  y = r2 + bw / 2;
-  canvas.fillTriangle(x - 5, y, x + 2, y + 5, x + 2, y - 5, TFT_SILVER);
-
-  // draw up symbol
-  x = c4 + bw / 2;
-  y = r1 + bw / 2;
-  canvas.fillTriangle(x, y - 3, x - 5, y + 4, x + 5, y + 4, TFT_SILVER);
-
-  // draw ok symbol
-  x = c4 + bw / 2;
-  y = r2 + bw / 2;
-  canvas.fillArc(x, y, 7, 5, 0, 360, TFT_SILVER);
-
-  // draw down symbol
-  x = c4 + bw / 2;
-  y = r3 + bw / 2;
-  canvas.fillTriangle(x, y + 3, x - 5, y - 4, x + 5, y - 4, TFT_SILVER);
-
-  // draw right symbol
-  x = c5 + bw / 2;
-  y = r2 + bw / 2;
-  canvas.fillTriangle(x + 5, y, x - 2, y - 5, x - 2, y + 5, TFT_SILVER);
-
-  // draw back symbol
-  x = c6 + bw / 2;
-  y = r1 + bw / 2;
-  canvas.fillTriangle(x - 8, y - 5, x, y - 10, x, y, TFT_SILVER);
-  canvas.fillArc(x + 1, y + 1, 8, 5, 255, 65, TFT_SILVER);
-
-  // draw display symbol
-  canvas.drawRoundRect(c6 + 6, r2 + 6, bw - 12, bw - 12, 3, TFT_SILVER);
-  canvas.drawRoundRect(c6 + 5, r2 + 5, bw - 10, bw - 10, 3, TFT_SILVER);
-  // canvas.drawRoundRect(c6 + 4, r2 + 4, bw - 8, bw - 8, 3, TFT_SILVER);
-
-  // draw home symbol
-  x = c6 + bw / 2;
-  y = r3 + bw / 2;
-  canvas.fillTriangle(x - 9, y - 3, x + 9, y - 3, x, y - 9, TFT_SILVER);
-  canvas.fillRect(x - 6, y - 3, 12, 12, TFT_SILVER);
-  canvas.fillRect(x - 3, y + 1, 5, 9, COLOR_DARKRED);
+  int hbw = bw / 2;
+  draw_power_symbol(canvas, c1 + hbw, r1 + hbw);
+  draw_input_symbol(canvas, c1 + hbw, r2 + hbw, bw);
+  draw_gear_symbol(canvas, c1 + hbw, r3 + hbw);
+  draw_volup_symbol(canvas, c2 + hbw, r1 + hbw);
+  draw_mute_symbol(canvas, c2 + hbw, r2 + hbw);
+  draw_voldn_symbol(canvas, c2 + hbw, r3 + hbw);
+  draw_left_symbol(canvas, c3 + hbw, r2 + hbw);
+  draw_up_symbol(canvas, c4 + hbw, r1 + hbw);
+  draw_ok_symbol(canvas, c4 + hbw, r2 + hbw);
+  draw_down_symbol(canvas, c4 + hbw, r3 + hbw);
+  draw_right_symbol(canvas, c5 + hbw, r2 + hbw);
+  draw_back_symbol(canvas, c6 + hbw, r1 + hbw);
+  draw_display_symbol(canvas, c6 + hbw, r2 + hbw, bw);
+  draw_home_symbol(canvas, c6 + hbw, r3 + hbw);
 
   canvas.pushSprite(0, 0);
 }
