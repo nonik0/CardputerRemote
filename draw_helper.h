@@ -13,6 +13,8 @@ const unsigned short COLOR_BLUEGRAY = 0x0B0C;
 const unsigned short COLOR_BLUE = 0x026E;
 const unsigned short COLOR_PURPLE = 0x7075;
 
+enum Symbol { Power, Input, Gear, VolUp, Mute, VolDn, Left, Up, Ok, Down, Right, Back, Display, Home };
+
 inline void draw_power_symbol(M5Canvas canvas, int x, int y)
 {
     canvas.fillArc(x, y, 9, 7, 0, 230, TFT_RED);
@@ -37,8 +39,7 @@ inline void draw_gear_symbol(M5Canvas canvas, int x, int y)
 }
 
 inline void draw_volup_symbol(M5Canvas canvas, int x, int y)
-{
-    canvas.fillTriangle(x - 8, y, x, y + 8, x, y - 8, TFT_SILVER);
+{    canvas.fillTriangle(x - 8, y, x, y + 8, x, y - 8, TFT_SILVER);
     canvas.fillRect(x - 10, y - 3, 8, 6, TFT_SILVER);
     canvas.fillRect(x + 3, y - 1, 8, 2, TFT_SILVER);
     canvas.fillRect(x + 6, y - 4, 2, 8, TFT_SILVER);
@@ -102,4 +103,51 @@ inline void draw_home_symbol(M5Canvas canvas, int x, int y)
     canvas.fillTriangle(x - 9, y - 3, x + 9, y - 3, x, y - 9, TFT_SILVER);
     canvas.fillRect(x - 6, y - 3, 12, 12, TFT_SILVER);
     canvas.fillRect(x - 3, y + 1, 5, 9, COLOR_DARKRED);
+}
+
+inline void draw_symbol(M5Canvas canvas, Symbol symbol, int x, int y, int bw) {
+    switch (symbol) {
+        case Power:
+            draw_power_symbol(canvas, x, y);
+            break;
+        case Input:
+            draw_input_symbol(canvas, x, y, bw);
+            break;
+        case Gear:
+            draw_gear_symbol(canvas, x, y);
+            break;
+        case VolUp:
+            draw_volup_symbol(canvas, x, y);
+            break;
+        case Mute:
+            draw_mute_symbol(canvas, x, y);
+            break;
+        case VolDn:
+            draw_voldn_symbol(canvas, x, y);
+            break;
+        case Left:
+            draw_left_symbol(canvas, x, y);
+            break;
+        case Up:
+            draw_up_symbol(canvas, x, y);
+            break;
+        case Ok:
+            draw_ok_symbol(canvas, x, y);
+            break;
+        case Down:
+            draw_down_symbol(canvas, x, y);
+            break;
+        case Right:
+            draw_right_symbol(canvas, x, y);
+            break;
+        case Back:
+            draw_back_symbol(canvas, x, y);
+            break;
+        case Display:
+            draw_display_symbol(canvas, x, y, bw);
+            break;
+        case Home:
+            draw_home_symbol(canvas, x, y);
+            break;
+    }
 }

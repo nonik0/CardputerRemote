@@ -81,26 +81,26 @@ struct Button
   int y;
   int w;
   int h;
-  String label;
+  Symbol symbol;
   unsigned short color;
   bool pressed;
 };
 
 Button buttons[] = {
-    {'`', c1, r1, bw, bw, "", COLOR_PURPLE, false},             // power
-    {KEY_TAB, c1, r2, bw, bw, "", COLOR_PURPLE, false},         // mute
-    {KEY_LEFT_CTRL, c1, r3, bw, bw, "", COLOR_PURPLE, false},   // settings
-    {'s', c2, r1, bw, bw, "", COLOR_PURPLE, false},             // volup
-    {'m', c2, r2, bw, bw, "", COLOR_PURPLE, false},             // mute
-    {'z', c2, r3, bw, bw, "", COLOR_PURPLE, false},             // voldn
-    {',', c3, r2, bw, bw, "", COLOR_BLUE, false},               // left
-    {';', c4, r1, bw, bw, "", COLOR_BLUE, false},               // up
-    {KEY_ENTER, c4, r2, bw, bw, "", COLOR_BLUE, false},         // OK
-    {'.', c4, r3, bw, bw, "", COLOR_BLUE, false},               // down
-    {'/', c5, r2, bw, bw, "", COLOR_BLUE, false},               // right
-    {KEY_BACKSPACE, c6, r1, bw, bw, "", COLOR_BLUEGRAY, false}, // back
-    {'\\', c6, r2, bw, bw, "", COLOR_BLUEGRAY, false},          // ?
-    {' ', c6, r3, bw, bw, "", COLOR_BLUEGRAY, false},           // home
+    {'`', c1, r1, bw, bw, Power, COLOR_PURPLE, false},             // power
+    {KEY_TAB, c1, r2, bw, bw, Input, COLOR_PURPLE, false},         // input
+    {KEY_LEFT_CTRL, c1, r3, bw, bw, Gear, COLOR_PURPLE, false},   // settings
+    {'s', c2, r1, bw, bw, VolUp, COLOR_PURPLE, false},             // volup
+    {'m', c2, r2, bw, bw, Mute, COLOR_PURPLE, false},             // mute
+    {'z', c2, r3, bw, bw, VolDn, COLOR_PURPLE, false},             // voldn
+    {',', c3, r2, bw, bw, Left, COLOR_BLUE, false},               // left
+    {';', c4, r1, bw, bw, Up, COLOR_BLUE, false},               // up
+    {KEY_ENTER, c4, r2, bw, bw, Ok, COLOR_BLUE, false},         // OK
+    {'.', c4, r3, bw, bw, Down, COLOR_BLUE, false},               // down
+    {'/', c5, r2, bw, bw, Right, COLOR_BLUE, false},               // right
+    {KEY_BACKSPACE, c6, r1, bw, bw, Back, COLOR_BLUEGRAY, false}, // back
+    {'\\', c6, r2, bw, bw, Display, COLOR_BLUEGRAY, false},          // ?
+    {' ', c6, r3, bw, bw, Home, COLOR_BLUEGRAY, false},           // home
 };
 uint8_t buttonCount = sizeof(buttons) / sizeof(Button);
 
@@ -245,29 +245,9 @@ void draw()
   {
     unsigned short color = button.pressed ? TFT_ORANGE : button.color;
     canvas.fillRoundRect(button.x, button.y, button.w, button.h, 3, color);
-    // canvas.setTextColor(TFT_SILVER, color);
-    // canvas.drawString(button.label, button.x + button.w / 2, button.y +
-    // button.h / 2);
+    draw_symbol(canvas, button.symbol, button.x + button.w / 2,
+                button.y + button.h / 2, button.w);
   }
-
-  canvas.drawRoundRect(c1 + 4, r2 + 4, bw - 8, bw - 8, 3, TFT_SILVER);
-  canvas.drawRoundRect(c1 + 3, r2 + 3, bw - 6, bw - 6, 3, TFT_SILVER);
-
-  int hbw = bw / 2;
-  draw_power_symbol(canvas, c1 + hbw, r1 + hbw);
-  draw_input_symbol(canvas, c1 + hbw, r2 + hbw, bw);
-  draw_gear_symbol(canvas, c1 + hbw, r3 + hbw);
-  draw_volup_symbol(canvas, c2 + hbw, r1 + hbw);
-  draw_mute_symbol(canvas, c2 + hbw, r2 + hbw);
-  draw_voldn_symbol(canvas, c2 + hbw, r3 + hbw);
-  draw_left_symbol(canvas, c3 + hbw, r2 + hbw);
-  draw_up_symbol(canvas, c4 + hbw, r1 + hbw);
-  draw_ok_symbol(canvas, c4 + hbw, r2 + hbw);
-  draw_down_symbol(canvas, c4 + hbw, r3 + hbw);
-  draw_right_symbol(canvas, c5 + hbw, r2 + hbw);
-  draw_back_symbol(canvas, c6 + hbw, r1 + hbw);
-  draw_display_symbol(canvas, c6 + hbw, r2 + hbw, bw);
-  draw_home_symbol(canvas, c6 + hbw, r3 + hbw);
 
   canvas.pushSprite(0, 0);
 }
