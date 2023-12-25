@@ -1,6 +1,7 @@
 #include <M5Cardputer.h>
 
 #include "gear_bmp.h"
+#include "remote_keymap.h"
 
 // RBG565 colors
 const unsigned short COLOR_BLACK = 0x18E3;
@@ -14,6 +15,59 @@ const unsigned short COLOR_BLUE = 0x026E;
 const unsigned short COLOR_PURPLE = 0x7075;
 
 enum Symbol { Power, Input, Gear, VolUp, Mute, VolDn, Left, Up, Ok, Down, Right, Back, Display, Home };
+
+inline void draw_title_text(M5Canvas* canvas, int x, int y) {
+  canvas->setTextColor(TFT_SILVER, COLOR_DARKGRAY);
+  canvas->setTextDatum(middle_center);
+  canvas->setTextSize(1.5);
+
+  // bug? drawChar doesn't respect text datum
+  canvas->drawString("N", x - 6, y);
+  canvas->drawString("O", x - 6, y + 14);
+  canvas->drawString("N", x - 6, y + 28);
+  canvas->drawString("I", x - 6, y + 42);
+  canvas->drawString("K", x - 6, y + 56);
+  canvas->drawString("R", x + 6, y + 20);
+  canvas->drawString("E", x + 6, y + 34);
+  canvas->drawString("M", x + 6, y + 48);
+  canvas->drawString("O", x + 6, y + 62);
+  canvas->drawString("T", x + 6, y + 76);
+  canvas->drawString("E", x + 6, y + 90);
+}
+
+inline void draw_remote_type_indicators(M5Canvas* canvas, int x, int y, int m, RemoteType remoteType) {
+  int w = 36;
+  int h = 17;
+  y -= h / 2;
+  unsigned short bc = remoteType == Sony ? COLOR_ORANGE : COLOR_MEDGRAY;
+  unsigned short tc = remoteType == Sony ? TFT_BLACK : TFT_SILVER;
+  canvas->setTextColor(TFT_SILVER, COLOR_MEDGRAY);
+  canvas->setTextSize(1.2);
+  canvas->fillRoundRect(x, y, w, h, 3, bc);
+  canvas->setTextColor(tc, bc);
+  canvas->drawString("SONY", x + w / 2, y + h / 2);
+
+  x = x + w + m;
+  bc = remoteType == Lg ? COLOR_ORANGE : COLOR_MEDGRAY;
+  tc = remoteType == Lg ? TFT_BLACK : TFT_SILVER;
+  canvas->fillRoundRect(x, y, w, h, 3, bc);
+  canvas->setTextColor(tc, bc);
+  canvas->drawString("LG", x + w / 2, y + h / 2);
+
+  x = x + w + m;
+  bc = remoteType == Undef1 ? COLOR_ORANGE : COLOR_MEDGRAY;
+  tc = remoteType == Undef1 ? TFT_BLACK : TFT_SILVER;
+  canvas->fillRoundRect(x, y, w, h, 3, bc);
+  canvas->setTextColor(tc, bc);
+  canvas->drawString("TBD", x + w / 2, y + h / 2);
+
+  x = x + w + m;
+  bc = remoteType == Undef2 ? COLOR_ORANGE : COLOR_MEDGRAY;
+  tc = remoteType == Undef2 ? TFT_BLACK : TFT_SILVER;
+  canvas->fillRoundRect(x, y, w, h, 3, bc);
+  canvas->setTextColor(tc, bc);
+  canvas->drawString("TBD", x + w / 2, y + h / 2);
+}
 
 inline void draw_battery_indicator(M5Canvas* canvas, int x, int y, int batteryPct) {  // draw battery indicator
   int battw = 24;

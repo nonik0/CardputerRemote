@@ -14,21 +14,13 @@
 
 M5Canvas canvas(&M5Cardputer.Display);
 
+RemoteType remoteType = Sony;
 Key *activeRemote;
 uint activeRemoteKeyCount;
 ;
 std::function<void(int, int)> activeRemoteIrSend;
 // TODO: active button map/state for different layouts
 
-enum RemoteType
-{
-  Sony,
-  Lg,
-  Undef1,
-  Undef2,
-  End
-};
-RemoteType remoteType = Sony;
 
 int batteryPct = M5Cardputer.Power.getBatteryLevel();
 int batteryDelay = 0;
@@ -152,76 +144,19 @@ void draw()
 {
   canvas.fillSprite(BLACK);
 
-  // draw background graphics
+  // draw background, sidebar, header graphics
   canvas.fillRoundRect(hx, hy, hw, hh, 8, COLOR_DARKGRAY);
   canvas.fillRoundRect(sx, sy, sw, sh, 8, COLOR_DARKGRAY);
   canvas.fillRoundRect(rx, ry, rw, rh, 8, COLOR_DARKGRAY);
-  canvas.fillRoundRect(dx, dy, dw, dw, 10, COLOR_MEDGRAY);
 
-  // reused vars for drawing symbols
-  int x, y, w, h, bc, tc;
-
-  // draw title text
-  x = sx + (sw / 2);
-  y = sy + 20;
-  canvas.setTextColor(TFT_SILVER, COLOR_DARKGRAY);
-  canvas.setTextDatum(middle_center);
-  canvas.setTextSize(1.5);
-
-  // bug? drawChar doesn't respect text datum
-  canvas.drawString("N", x - 6, y);
-  canvas.drawString("O", x - 6, y + 14);
-  canvas.drawString("N", x - 6, y + 28);
-  canvas.drawString("I", x - 6, y + 42);
-  canvas.drawString("K", x - 6, y + 56);
-  canvas.drawString("R", x + 6, y + 20);
-  canvas.drawString("E", x + 6, y + 34);
-  canvas.drawString("M", x + 6, y + 48);
-  canvas.drawString("O", x + 6, y + 62);
-  canvas.drawString("T", x + 6, y + 76);
-  canvas.drawString("E", x + 6, y + 90);
-
-  // TODO: seperate canvas for top bar?
-
-  // draw remote type indicators
-  w = 36;
-  h = 17;
-  x = hx + rm;
-  y = hy + (hh - h) / 2;
-  bc = remoteType == Sony ? COLOR_ORANGE : COLOR_MEDGRAY;
-  tc = remoteType == Sony ? TFT_BLACK : TFT_SILVER;
-  canvas.setTextColor(TFT_SILVER, COLOR_MEDGRAY);
-  canvas.setTextSize(1.2);
-  canvas.fillRoundRect(x, y, w, h, 3, bc);
-  canvas.setTextColor(tc, bc);
-  canvas.drawString("SONY", x + w / 2, y + h / 2);
-
-  x = x + w + rm;
-  bc = remoteType == Lg ? COLOR_ORANGE : COLOR_MEDGRAY;
-  tc = remoteType == Lg ? TFT_BLACK : TFT_SILVER;
-  canvas.fillRoundRect(x, y, w, h, 3, bc);
-  canvas.setTextColor(tc, bc);
-  canvas.drawString("LG", x + w / 2, y + h / 2);
-
-  x = x + w + rm;
-  bc = remoteType == Undef1 ? COLOR_ORANGE : COLOR_MEDGRAY;
-  tc = remoteType == Undef1 ? TFT_BLACK : TFT_SILVER;
-  canvas.fillRoundRect(x, y, w, h, 3, bc);
-  canvas.setTextColor(tc, bc);
-  canvas.drawString("TBD", x + w / 2, y + h / 2);
-
-  x = x + w + rm;
-  bc = remoteType == Undef2 ? COLOR_ORANGE : COLOR_MEDGRAY;
-  tc = remoteType == Undef2 ? TFT_BLACK : TFT_SILVER;
-  canvas.fillRoundRect(x, y, w, h, 3, bc);
-  canvas.setTextColor(tc, bc);
-  canvas.drawString("TBD", x + w / 2, y + h / 2);
-
+  draw_title_text(&canvas, sx + (sw / 2), sy + 20);
+  draw_remote_type_indicators(&canvas, hx + rm, hy + hh / 2, rm, remoteType);
   draw_battery_indicator(&canvas, c6 + 2, hy + (hh / 2), batteryPct);
 
   // TODO: different button layouts for different remotes
 
-  // draw all buttons for remote
+  // draw all layout for remote
+  canvas.fillRoundRect(dx, dy, dw, dw, 10, COLOR_MEDGRAY);
   for (auto button : buttons)
   {
     unsigned short color = button.pressed ? TFT_ORANGE : button.color;

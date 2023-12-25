@@ -1,4 +1,15 @@
+#pragma once
+
 #include <M5Cardputer.h>
+
+enum RemoteType
+{
+  Sony,
+  Lg,
+  Undef1,
+  Undef2,
+  End
+};
 
 struct Key
 {
