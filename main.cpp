@@ -217,26 +217,7 @@ void draw()
   canvas.setTextColor(tc, bc);
   canvas.drawString("TBD", x + w / 2, y + h / 2);
 
-  // draw battery indicator
-  int battw = bw - 4;
-  int batth = 11;
-  x = c6 + 2;
-  y = hy + (hh - batth) / 2;
-  // determine battery color and charge width from charge level
-  int chgw = (battw - 2) * batteryPct / 100;
-  uint16_t batColor = COLOR_TEAL;
-  if (batteryPct < 100)
-  {
-    int r = ((100 - batteryPct) / 100.0) * 256;
-    int g = (batteryPct / 100.0) * 256;
-    batColor = canvas.color565(r, g, 0);
-  }
-  canvas.fillRoundRect(x, y, battw, batth, 2, TFT_SILVER);
-  canvas.fillRect(x - 2, hy + (hh / 2) - 2, 2, 4, TFT_SILVER);
-  canvas.fillRect(x + 1, y + 1, battw - 2 - chgw, batth - 2,
-                  COLOR_DARKGRAY); // 1px margin from outer battery
-  canvas.fillRect(x + 1 + battw - 2 - chgw, y + 1, chgw, batth - 2,
-                  batColor); // 1px margin from outer battery
+  draw_battery_indicator(&canvas, c6 + 2, hy + (hh / 2), batteryPct);
 
   // TODO: different button layouts for different remotes
 
@@ -245,7 +226,7 @@ void draw()
   {
     unsigned short color = button.pressed ? TFT_ORANGE : button.color;
     canvas.fillRoundRect(button.x, button.y, button.w, button.h, 3, color);
-    draw_symbol(canvas, button.symbol, button.x + button.w / 2,
+    draw_button_symbol(&canvas, button.symbol, button.x + button.w / 2,
                 button.y + button.h / 2, button.w);
   }
 
