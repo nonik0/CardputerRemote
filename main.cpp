@@ -9,7 +9,7 @@
 #include "remote_keymap.h"
 
 #define DISABLE_CODE_FOR_RECEIVER
-#define SEND_PWM_y_TIMER
+#define SEND_PWM_BY_TIMER
 #define IR_TX_PIN 44
 
 M5Canvas canvas(&M5Cardputer.Display);
@@ -17,13 +17,11 @@ M5Canvas canvas(&M5Cardputer.Display);
 RemoteType remoteType = Sony;
 Key *activeRemote;
 uint activeRemoteKeyCount;
-;
 std::function<void(int, int)> activeRemoteIrSend;
 // TODO: active button map/state for different layouts
 
-
 int batteryPct = M5Cardputer.Power.getBatteryLevel();
-int batteryDelay = 0;
+int updateDelay = 0;
 
 // define a bunch of display variables to make adjustments not a nightmare
 int w = 240; // width
@@ -32,11 +30,11 @@ int xm = 4;  // x margin
 int ym = 4;  // y margin
 int rm = 4;  // rect margin, used for background graphics
 int bw = 28; // button width
-int bm = 2;  // button margin
+int im = 2;  // button margin
 
 // main background rectangle, for remote buttons
-int rw = 6 * rm + 6 * bw + 3 * bm;
-int rh = 2 * rm + 3 * bw + 2 * bm;
+int rw = 6 * rm + 6 * bw + 3 * im;
+int rh = 2 * rm + 3 * bw + 2 * im;
 int rx = w - xm - rw;
 int ry = h - ym - rh;
 // header rectangle
@@ -51,15 +49,14 @@ int sw = rx - xm - rm;
 int sh = h - ym - ym;
 
 // specific to button layout
-// TODO: refactor to be more dynamic
 int r1 = ry + rm;
-int r2 = r1 + bw + bm;
-int r3 = r2 + bw + bm;
+int r2 = r1 + bw + im;
+int r3 = r2 + bw + im;
 int c1 = rx + rm;
-int c2 = c1 + bw + bm;
+int c2 = c1 + bw + im;
 int c3 = c2 + bw + 2 * rm;
-int c4 = c3 + bw + bm;
-int c5 = c4 + bw + bm;
+int c4 = c3 + bw + im;
+int c5 = c4 + bw + im;
 int c6 = c5 + bw + 2 * rm;
 // directional square
 int dw = c6 - c3;
@@ -177,7 +174,7 @@ void setup()
 
   M5Cardputer.Display.setRotation(1);
   M5Cardputer.Display.setBrightness(100);
-  canvas.createSprite(240, 135);
+  canvas.createSprite(w, h);
 
   IrSender.begin(DISABLE_LED_FEEDBACK); // Start with IR_SEND_PIN as send pin
   IrSender.setSendPin(IR_TX_PIN);
@@ -226,9 +223,9 @@ void loop()
     draw();
   }
 
-  if (millis() > batteryDelay)
+  if (millis() > updateDelay)
   {
-    batteryDelay = millis() + 60000;
+    updateDelay = millis() + 60000;
     batteryPct = M5Cardputer.Power.getBatteryLevel();
     draw();
   }

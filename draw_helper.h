@@ -7,6 +7,7 @@
 const unsigned short COLOR_BLACK = 0x18E3;
 const unsigned short COLOR_DARKGRAY = 0x0861;
 const unsigned short COLOR_MEDGRAY = 0x2104;
+const unsigned short COLOR_LIGHTGRAY = 0x4208;
 const unsigned short COLOR_DARKRED = 0x5800;
 const unsigned short COLOR_ORANGE = 0xC401;
 const unsigned short COLOR_TEAL = 0x07CC;
@@ -41,9 +42,9 @@ inline void draw_remote_type_indicators(M5Canvas* canvas, int x, int y, int m, R
   y -= h / 2;
   unsigned short bc = remoteType == Sony ? COLOR_ORANGE : COLOR_MEDGRAY;
   unsigned short tc = remoteType == Sony ? TFT_BLACK : TFT_SILVER;
+  canvas->fillRoundRect(x, y, w, h, 3, bc);
   canvas->setTextColor(TFT_SILVER, COLOR_MEDGRAY);
   canvas->setTextSize(1.2);
-  canvas->fillRoundRect(x, y, w, h, 3, bc);
   canvas->setTextColor(tc, bc);
   canvas->drawString("SONY", x + w / 2, y + h / 2);
 
