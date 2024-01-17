@@ -225,8 +225,12 @@ void loop()
 
   if (millis() > updateDelay)
   {
-    updateDelay = millis() + 60000;
-    batteryPct = M5Cardputer.Power.getBatteryLevel();
-    draw();
+    updateDelay = millis() + 2000;
+    int newBatteryPct = M5Cardputer.Power.getBatteryLevel();
+    if (newBatteryPct != batteryPct)
+    {
+      batteryPct = newBatteryPct;
+      draw();
+    }
   }
 }
