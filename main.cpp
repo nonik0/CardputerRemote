@@ -76,43 +76,22 @@ struct Button
 };
 
 Button buttons[] = {
-    {'`', c1, r1, bw, bw, Power, COLOR_PURPLE, false},             // power
-    {KEY_TAB, c1, r2, bw, bw, Input, COLOR_PURPLE, false},         // input
+    {'`', c1, r1, bw, bw, Power, COLOR_PURPLE, false},            // power
+    {KEY_TAB, c1, r2, bw, bw, Input, COLOR_PURPLE, false},        // input
     {KEY_LEFT_CTRL, c1, r3, bw, bw, Gear, COLOR_PURPLE, false},   // settings
-    {'s', c2, r1, bw, bw, VolUp, COLOR_PURPLE, false},             // volup
+    {'s', c2, r1, bw, bw, VolUp, COLOR_PURPLE, false},            // volup
     {'m', c2, r2, bw, bw, Mute, COLOR_PURPLE, false},             // mute
-    {'z', c2, r3, bw, bw, VolDn, COLOR_PURPLE, false},             // voldn
+    {'z', c2, r3, bw, bw, VolDn, COLOR_PURPLE, false},            // voldn
     {',', c3, r2, bw, bw, Left, COLOR_BLUE, false},               // left
-    {';', c4, r1, bw, bw, Up, COLOR_BLUE, false},               // up
-    {KEY_ENTER, c4, r2, bw, bw, Ok, COLOR_BLUE, false},         // OK
+    {';', c4, r1, bw, bw, Up, COLOR_BLUE, false},                 // up
+    {KEY_ENTER, c4, r2, bw, bw, Ok, COLOR_BLUE, false},           // OK
     {'.', c4, r3, bw, bw, Down, COLOR_BLUE, false},               // down
-    {'/', c5, r2, bw, bw, Right, COLOR_BLUE, false},               // right
+    {'/', c5, r2, bw, bw, Right, COLOR_BLUE, false},              // right
     {KEY_BACKSPACE, c6, r1, bw, bw, Back, COLOR_BLUEGRAY, false}, // back
-    {'\\', c6, r2, bw, bw, Display, COLOR_BLUEGRAY, false},          // ?
+    {'\\', c6, r2, bw, bw, Display, COLOR_BLUEGRAY, false},       // ?
     {' ', c6, r3, bw, bw, Home, COLOR_BLUEGRAY, false},           // home
 };
 uint8_t buttonCount = sizeof(buttons) / sizeof(Button);
-
-SPIClass SPI2;
-void checkForMenuBoot()
-{
-  M5Cardputer.update();
-
-  if (M5Cardputer.Keyboard.isKeyPressed('a'))
-  {
-    SPI2.begin(M5.getPin(m5::pin_name_t::sd_spi_sclk),
-               M5.getPin(m5::pin_name_t::sd_spi_miso),
-               M5.getPin(m5::pin_name_t::sd_spi_mosi),
-               M5.getPin(m5::pin_name_t::sd_spi_ss));
-    while (!SD.begin(M5.getPin(m5::pin_name_t::sd_spi_ss), SPI2))
-    {
-      delay(500);
-    }
-
-    updateFromFS(SD, "/menu.bin");
-    ESP.restart();
-  }
-}
 
 void setRemoteType(RemoteType type)
 {
@@ -159,7 +138,7 @@ void draw()
     unsigned short color = button.pressed ? TFT_ORANGE : button.color;
     canvas.fillRoundRect(button.x, button.y, button.w, button.h, 3, color);
     draw_button_symbol(&canvas, button.symbol, button.x + button.w / 2,
-                button.y + button.h / 2, button.w);
+                       button.y + button.h / 2, button.w);
   }
 
   canvas.pushSprite(0, 0);
@@ -169,8 +148,6 @@ void setup()
 {
   auto cfg = M5.config();
   M5Cardputer.begin(cfg, true);
-
-  checkForMenuBoot();
 
   M5Cardputer.Display.setRotation(1);
   M5Cardputer.Display.setBrightness(100);
