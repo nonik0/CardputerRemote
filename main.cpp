@@ -1,9 +1,7 @@
 #include <Arduino.h>
-#include <M5Cardputer.h>
-#include <M5StackUpdater.h>
-
-#include <IRremote.hpp>
 #include <functional>
+#include <IRremote.hpp>
+#include <M5Cardputer.h>
 
 #include "draw_helper.h"
 #include "remote_keymap.h"
